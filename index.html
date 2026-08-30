@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urna Popular - Pesquisa Informal 2026</title>
+  
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Biblioteca jsPDF para emissão do comprovante -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Modal de Identificação do Participante -->
+  <div id="modal-id">
+    <div class="modal-box">
+      <div class="modal-icone">🗳️</div>
+      <h2>PESQUISA POPULAR INFORMAL</h2>
+      <span class="modal-subtitulo">Identificação do Participante</span>
+
+      <div class="modal-orientacoes">
+        <p>
+          Para assegurar a integridade da pesquisa e impedir votos repetidos, 
+          informe seu identificador único.
+        </p>
+
+        <div class="sugestao-id">
+          <strong>Você pode utilizar:</strong>
+          <ul>
+            <li>Número de celular / WhatsApp (com DDD);</li>
+            <li>Número de CPF; ou</li>
+            <li>Código individual fornecido pela organização.</li>
+          </ul>
+        </div>
+
+        <div class="aviso-sigilo">
+          🔒 <b>Sigilo Garantido:</b> O identificador serve apenas para registro de presença. Suas escolhas são gravadas de forma 100% anônima e desassociada.
+        </div>
+
+        <div class="aviso-expiracao">
+          ⏳ <b>Tempo Limitado:</b> Os registros de presença ficarão armazenados por apenas <b>1 semana</b> (período oficial de vigência desta pesquisa). Após esse prazo, a base de participantes será completamente zerada juntamente com a emissão da <i>Zerésima da Urna</i>.
+        </div>
+      </div>
+
+      <input 
+        type="text" 
+        id="eleitor-id-input" 
+        placeholder="Digite seu celular, CPF ou código..." 
+        autofocus
+      >
+      
+      <button onclick="iniciarVotacao()">LIBERAR CABINE DE VOTAÇÃO</button>
+      <div id="modal-msg"></div>
+
+      <div class="modal-rodape-legal">
+        ⚠️ Pesquisa popular de opinião pública sem vínculo eleitoral oficial.
+      </div>
+    </div>
+  </div>
+
+  <!-- Interface da Urna Eletrônica -->
+  <div class="urna-container">
+    <div class="tela-container" id="tela">
+      <!-- Conteúdo injetado via JavaScript -->
+    </div>
+
+    <div class="teclado-container">
+      <div class="justica-eleitoral">URNA POPULAR</div>
+      
+      <div class="aviso-nao-oficial">
+        ⚠️ ATENÇÃO: Esta é uma ferramenta de pesquisa de opinião sem vínculo eleitoral oficial.
+      </div>
+      
+      <div class="teclado-numerico">
+        <button class="btn-num" onclick="digitar('1')">1</button>
+        <button class="btn-num" onclick="digitar('2')">2</button>
+        <button class="btn-num" onclick="digitar('3')">3</button>
+        <button class="btn-num" onclick="digitar('4')">4</button>
+        <button class="btn-num" onclick="digitar('5')">5</button>
+        <button class="btn-num" onclick="digitar('6')">6</button>
+        <button class="btn-num" onclick="digitar('7')">7</button>
+        <button class="btn-num" onclick="digitar('8')">8</button>
+        <button class="btn-num" onclick="digitar('9')">9</button>
+        <button class="btn-num" style="grid-column: 2" onclick="digitar('0')">0</button>
+      </div>
+
+      <div class="teclado-acoes">
+        <button class="btn-acao btn-branco" onclick="votarBranco()">BRANCO</button>
+        <button class="btn-acao btn-corrige" onclick="corrigir()">CORRIGE</button>
+        <button class="btn-acao btn-confirma" onclick="confirmar()">CONFIRMA</button>
+      </div>
+
+      <a href="apuracao.html" class="link-apuracao-discreto">Painel de Apuração em Tempo Real ↗</a>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

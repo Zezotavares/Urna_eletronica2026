@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Resultados - Pesquisa Popular 2026</title>
+  
+  <link rel="stylesheet" href="apuracao.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Biblioteca jsPDF para gerar a Zerésima -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Barra Superior Personalizada e Independente -->
+  <header class="navbar-painel">
+    <div class="navbar-conteudo">
+      <div class="navbar-titulo">
+        <div class="icone-marca">📊</div>
+        <div>
+          <span class="logo-texto">Painel de Apuração Popular</span>
+          <span class="subtitulo-pesquisa">Levantamento de Opinião Pública • Eleições 2026</span>
+        </div>
+      </div>
+      <div class="navbar-acoes">
+        <a href="index.html" class="btn-voltar-urna">⬅ Ir para a Urna</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner de Aviso Legal e Isenção de Vínculo -->
+  <div class="banner-aviso-legal">
+    <div class="container-central aviso-box">
+      <strong>⚠️ AVISO LEGAL:</strong> Esta plataforma é uma ferramenta de pesquisa popular informal independente e <u>não possui qualquer vínculo</u> com a Justiça Eleitoral ou órgãos oficiais do Estado.
+    </div>
+  </div>
+
+  <main class="container-central conteudo-principal">
+    
+    <!-- Painel de Filtros e Seleção -->
+    <section class="card-painel card-filtros">
+      <div class="cabecalho-secao">
+        <h2>Filtros da Apuração</h2>
+        <span class="badge-status-tempo-real">● DADOS EM TEMPO REAL</span>
+      </div>
+
+      <div class="grade-filtros">
+        <div class="grupo-campo">
+          <label for="select-cargo">Cargo em Disputa:</label>
+          <select id="select-cargo" onchange="mudarCargoViaSelect()">
+            <option value="Presidente">Presidente da República</option>
+            <option value="Governador">Governador(a)</option>
+            <option value="Senador (1ª Vaga)">Senador(a) - 1ª Vaga</option>
+            <option value="Senador (2ª Vaga)">Senador(a) - 2ª Vaga</option>
+            <option value="Deputado Federal">Deputado(a) Federal</option>
+            <option value="Deputado Estadual">Deputado(a) Estadual</option>
+          </select>
+        </div>
+
+        <div class="grupo-campo">
+          <label for="select-partido">Filtrar por Partido / Coligação:</label>
+          <select id="select-partido" onchange="filtrarResultados()">
+            <option value="TODOS">Todos os Partidos / Federações</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="acoes-painel-filtros" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <button class="btn-atualizar-dados" onclick="carregarApuracao()">
+          🔄 Atualizar Contagem
+        </button>
+
+        <!-- Botão Administrativo da Zerésima -->
+        <button onclick="solicitarZeresima()" style="background-color:#991b1b; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+          📄 Emitir Zerésima e Resetar Urna
+        </button>
+      </div>
+    </section>
+
+    <!-- Painel de Resultados e Estatísticas -->
+    <section class="card-painel card-listagem">
+      <div class="cabecalho-estatisticas">
+        <div class="cards-metricas">
+          <div class="metrica-item">
+            <span class="metrica-rotulo">Votos neste Cargo</span>
+            <span class="metrica-valor" id="total-votos-cargo">0</span>
+          </div>
+          <div class="metrica-item">
+            <span class="metrica-rotulo">Participantes Totais</span>
+            <span class="metrica-valor" id="total-votantes">0</span>
+          </div>
+        </div>
+        <div class="hora-atualizacao-box">
+          Última sincronização: <span id="hora-atualizacao">--:--:--</span>
+        </div>
+      </div>
+
+      <!-- Barra de Pesquisa Rápida -->
+      <div class="campo-busca-rapida">
+        <input 
+          type="text" 
+          id="input-busca" 
+          placeholder="🔍 Buscar por nome do candidato, sigla do partido ou número..."
+          oninput="filtrarResultados()"
+        >
+      </div>
+
+      <!-- Lista Consolidada de Candidatos -->
+      <div id="lista-candidatos-apuracao" class="lista-candidatos">
+        <div class="carregando">Carregando dados consolidados da pesquisa...</div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="rodape-painel">
+    <div class="container-central">
+      <p>Sistema Independente de Coleta de Opinião Pública • Desenvolvido para fins de pesquisa e simulação.</p>
+    </div>
+  </footer>
+
+  <script src="apuracao.js"></script>
+</body>
+</html>
