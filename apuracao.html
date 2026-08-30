@@ -7,7 +7,7 @@
   
   <link rel="stylesheet" href="apuracao.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Biblioteca jsPDF para gerar a Zerésima -->
+  <!-- Biblioteca jsPDF para gerar relatórios -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
@@ -65,10 +65,17 @@
         </div>
       </div>
 
-      <div class="acoes-painel-filtros" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-        <button class="btn-atualizar-dados" onclick="carregarApuracao()">
-          🔄 Atualizar Contagem
-        </button>
+      <div class="acoes-painel-filtros" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn-atualizar-dados" onclick="carregarApuracao()">
+            🔄 Atualizar Contagem
+          </button>
+          
+          <!-- Botão de Emissão da Evolução dos Votos -->
+          <button onclick="gerarEvolucaoPDF()" style="background-color:#0284c7; color:#ffffff; border:none; padding:10px 18px; border-radius:8px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(2, 132, 199, 0.25); transition:background-color 0.2s;">
+            📈 Emitir Evolução dos Votos (PDF)
+          </button>
+        </div>
 
         <!-- Botão Administrativo da Zerésima -->
         <button onclick="solicitarZeresima()" style="background-color:#991b1b; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">

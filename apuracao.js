@@ -17,7 +17,7 @@ let votosTotaisCache = [];
 let candidatosCache = {};
 let listaConsolidadaAtual = [];
 
-// Função para corrigir caracteres corrompidos por encoding
+// Higienização de caracteres corrompidos por encoding
 function limparTextoCorrompido(texto) {
   if (!texto) return '';
 
@@ -243,6 +243,158 @@ function filtrarResultados() {
   container.innerHTML = html;
 }
 
+// FUNÇÃO DE EMISSÃO DA EVOLUÇÃO DOS VOTOS EM PDF
+async function gerarEvolucaoPDF() {
+  await carregarApuracao();
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const agora = new Date();
+  const dataFormatada = agora.toLocaleDateString('pt-BR');
+  const horaFormatada = agora.toLocaleTimeString('pt-BR');
+  const totalEleitores = document.getElementById('total-votantes').innerText || '0';
+  const codigoRelatorio = Math.random().toString(36).substring(2, 10).toUpperCase() + Date.now().toString(36).toUpperCase();
+
+  let y = 15;
+
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(14);
+  doc.text('PESQUISA POPULAR INFORMAL 2026', 105, y, { align: 'center' });
+  y += 6;
+  doc.setFontSize(12);
+  doc.text('BOLETIM DE EVOLUCAO DA VOTACAO', 105, y, { align: 'center' });
+  y += 6;
+  doc.setFontSize(8.5);
+  doc.setFont('courier', 'normal');
+  doc.text('RELATORIO CONSOLIDADO DE APURACAO PARCIAL EM TEMPO REAL', 105, y, { align: 'center' });
+  y += 5;
+  doc.text('---------------------------------------------------------------------------------', 105, y, { align: 'center' });
+  y += 6;
+
+  doc.text(`DATA DA CONSULTA   : ${dataFormatada}  -  HORARIO: ${horaFormatada}`, 14, y);
+  y += 5;
+  doc.text(`CODIGO DO BOLETIM  : ${codigoRelatorio}`, 14, y);
+  y += 5;
+  doc.text(`TOTAL DE VOTANTES  : ${totalEleitores} ELEITOR(ES) HABILITADO(S)`, 14, y);
+  y += 5;
+  doc.text('---------------------------------------------------------------------------------', 105, y, { align: 'center' });
+  y += 8;
+
+  // Itera por todos os 6 cargos gerando o ranqueamento dos votos
+  for (const [cargo, tabela] of Object.entries(tabelasCargos)) {
+    if (y > 255) {
+      doc.addPage();
+      y = 15;
+    }
+
+    const votosCargo = votosTotaisCache.filter(v => v.cargo === cargo);
+    const totalVotosCargo = votosCargo.length;
+
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(10);
+    doc.text(`CARGO: ${cargo.toUpperCase()} (Total de Votos: ${totalVotosCargo})`, 14, y);
+    y += 5;
+
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(8);
+
+    if (!candidatosCache[cargo]) {
+      const { data } = await _supabase.from(tabela).select('numero, nome, partido');
+      candidatosCache[cargo] = (data || []).map(c => ({
+        numero: String(c.numero).trim(),
+        nome: limparTextoCorrompido(c.nome),
+        partido: limparTextoCorrompido(c.partido)
+      }));
+    }
+
+    const lista = candidatosCache[cargo];
+
+    const contagem = {};
+    votosCargo.forEach(v => {
+      const num = v.numero_candidato;
+      contagem[num] = (contagem[num] || 0) + 1;
+    });
+
+    const resultadoCargo = [];
+
+    lista.forEach(c => {
+      const qtd = contagem[c.numero] || 0;
+      const pct = totalVotosCargo > 0 ? ((qtd / totalVotosCargo) * 100).toFixed(2) : "0.00";
+      resultadoCargo.push({
+        numero: c.numero,
+        nome: c.nome,
+        partido: c.partido || '-',
+        votos: qtd,
+        porcentagem: pct
+      });
+    });
+
+    // Brancos e Nulos
+    const qtdBranco = contagem['BRANCO'] || 0;
+    const pctBranco = totalVotosCargo > 0 ? ((qtdBranco / totalVotosCargo) * 100).toFixed(2) : "0.00";
+    resultadoCargo.push({
+      numero: 'BRANCO',
+      nome: 'VOTO EM BRANCO',
+      partido: '-',
+      votos: qtdBranco,
+      porcentagem: pctBranco
+    });
+
+    const qtdNulo = contagem['NULO'] || 0;
+    const pctNulo = totalVotosCargo > 0 ? ((qtdNulo / totalVotosCargo) * 100).toFixed(2) : "0.00";
+    resultadoCargo.push({
+      numero: 'NULO',
+      nome: 'VOTO NULO',
+      partido: '-',
+      votos: qtdNulo,
+      porcentagem: pctNulo
+    });
+
+    // Ordena pelo maior número de votos
+    resultadoCargo.sort((a, b) => b.votos - a.votos);
+
+    resultadoCargo.forEach(c => {
+      if (y > 280) {
+        doc.addPage();
+        y = 15;
+      }
+      const numFmt = c.numero.padEnd(6, ' ');
+      const nomeFmt = c.nome.padEnd(34, ' ').substring(0, 34);
+      const partFmt = c.partido.padEnd(18, ' ').substring(0, 18);
+      const votosFmt = String(c.votos).padStart(4, ' ') + ' VOTO(S)';
+      const pctFmt = `[${c.porcentagem.padStart(6, ' ')}%]`;
+
+      const linha = `${numFmt} ${nomeFmt} ${partFmt} ${votosFmt} ${pctFmt}`;
+      doc.text(linha, 14, y);
+      y += 4.2;
+    });
+
+    y += 5;
+  }
+
+  y += 4;
+  if (y > 265) {
+    doc.addPage();
+    y = 20;
+  }
+
+  doc.text('---------------------------------------------------------------------------------', 105, y, { align: 'center' });
+  y += 6;
+  doc.setFont('courier', 'bold');
+  doc.text('OBSERVACOES E DECLARACAO:', 14, y);
+  y += 5;
+  doc.setFont('courier', 'normal');
+  doc.text('Documento emitido automaticamente pelo painel de apuracao popular para registro', 14, y);
+  y += 4.5;
+  doc.text('e acompanhamento publico da evolucao dos votos no periodo de vigencia.', 14, y);
+
+  doc.save(`Evolucao_Votos_Pesquisa_${dataFormatada.replace(/\//g, '-')}_${horaFormatada.replace(/:/g, '')}.pdf`);
+}
+
 // FUNÇÃO DE SOLICITAÇÃO DA ZERÉSIMA E RESET DA URNA
 async function solicitarZeresima() {
   const senha = prompt("ATENÇÃO: Isso irá zerar TODOS os votos registrados e a lista de eleitores votantes!\n\nDigite a senha mestra administrativa para confirmar:");
@@ -256,10 +408,7 @@ async function solicitarZeresima() {
     return;
   }
 
-  // Gera o PDF da Zerésima
   await gerarRelatorioZeresimaPDF();
-
-  // Recarrega os dados da tela
   await carregarApuracao();
   alert("Zerésima emitida e banco de dados reinicializado com sucesso!");
 }
@@ -302,7 +451,6 @@ async function gerarRelatorioZeresimaPDF() {
   doc.text('---------------------------------------------------------------------------------', 105, y, { align: 'center' });
   y += 8;
 
-  // Itera por todos os 6 cargos listando candidatos com 0 votos
   for (const [cargo, tabela] of Object.entries(tabelasCargos)) {
     if (y > 260) {
       doc.addPage();
@@ -317,7 +465,6 @@ async function gerarRelatorioZeresimaPDF() {
     doc.setFont('courier', 'normal');
     doc.setFontSize(8);
 
-    // Carrega candidatos do cargo
     if (!candidatosCache[cargo]) {
       const { data } = await _supabase.from(tabela).select('numero, nome, partido');
       candidatosCache[cargo] = (data || []).map(c => ({
@@ -339,7 +486,6 @@ async function gerarRelatorioZeresimaPDF() {
       y += 4.2;
     });
 
-    // Brancos e Nulos
     doc.text(`BRANCO VOTO EM BRANCO                     -                    0 VOTO(S) [0.00%]`, 14, y);
     y += 4.2;
     doc.text(`NULO   VOTO NULO                          -                    0 VOTO(S) [0.00%]`, 14, y);
