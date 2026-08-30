@@ -8,7 +8,7 @@
 }
 
 body {
-  background: radial-gradient(circle at 50% 30%, #1e293b 0%, #0f172a 100%);
+  background: #eef2f6;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -22,8 +22,8 @@ body {
 #modal-id {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(6px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -39,8 +39,8 @@ body {
   max-width: 480px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e2e8f0;
   margin: auto;
 }
 
@@ -122,7 +122,7 @@ body {
 .modal-box input {
   width: 100%;
   padding: 14px 16px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #cbd5e1;
   border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
@@ -152,12 +152,12 @@ body {
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 .modal-box button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
 }
 
 .modal-box button:active {
@@ -179,34 +179,35 @@ body {
   line-height: 1.3;
 }
 
-/* CARCAÇA DA URNA ELETRÔNICA */
+/* CARCAÇA DA URNA ELETRÔNICA (TOM CINZA-CLARO REALISTA) */
 .urna-container {
   display: flex;
-  background: #d4d8dd;
+  background: #e2e8f0;
   border-radius: 20px;
   padding: 24px;
   box-shadow: 
-    0 20px 40px -15px rgba(0, 0, 0, 0.7),
-    inset 0 2px 4px rgba(255, 255, 255, 0.8),
-    inset 0 -3px 6px rgba(0, 0, 0, 0.25);
+    0 15px 35px -10px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    inset 0 2px 3px rgba(255, 255, 255, 0.9),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.1);
   gap: 24px;
   max-width: 960px;
   width: 100%;
-  border: 1px solid #c0c6cc;
+  border: 1px solid #cbd5e1;
 }
 
 /* MONITOR / TELA LCD DA URNA */
 .tela-container {
   flex: 1.25;
-  background: #fdfbf7;
-  border: 3px solid #8c96a0;
+  background: #ffffff;
+  border: 3px solid #94a3b8;
   border-radius: 10px;
   padding: 20px;
   min-height: 380px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
   position: relative;
   overflow: hidden;
 }
@@ -246,7 +247,7 @@ body {
   font-weight: bold;
   color: #0f172a;
   border-radius: 4px;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .digito.pisca {
@@ -265,10 +266,12 @@ body {
   line-height: 1.5;
   color: #1e293b;
   margin-top: 10px;
-  background: rgba(241, 245, 249, 0.7);
+  background: #f8fafc;
   padding: 10px 12px;
   border-radius: 6px;
   border-left: 4px solid #0f172a;
+  border: 1px solid #e2e8f0;
+  border-left-width: 4px;
 }
 
 .foto-candidato {
@@ -281,7 +284,7 @@ body {
   border: 2px solid #0f172a;
   background: #e2e8f0;
   border-radius: 4px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .rodape-tela {
@@ -307,21 +310,22 @@ body {
 /* TECLADO FÍSICO DA URNA */
 .teclado-container {
   flex: 1;
-  background: #23272d;
+  background: #334155;
   border-radius: 12px;
   padding: 18px;
   display: flex;
   flex-direction: column;
   box-shadow: 
-    inset 0 2px 4px rgba(255, 255, 255, 0.1),
-    0 8px 16px rgba(0, 0, 0, 0.4);
+    inset 0 2px 3px rgba(255, 255, 255, 0.15),
+    0 8px 18px rgba(0, 0, 0, 0.25);
+  border: 1px solid #475569;
 }
 
 .justica-eleitoral {
   text-align: center;
   font-size: 14px;
   font-weight: 800;
-  color: #e2e8f0;
+  color: #f8fafc;
   letter-spacing: 1.5px;
   margin-bottom: 8px;
   text-transform: uppercase;
@@ -329,13 +333,13 @@ body {
 
 .aviso-nao-oficial {
   font-size: 9.5px;
-  color: #94a3b8;
-  background: rgba(15, 23, 42, 0.6);
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.5);
   padding: 6px 8px;
   border-radius: 6px;
   text-align: center;
   margin-bottom: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   line-height: 1.3;
 }
 
@@ -349,8 +353,8 @@ body {
 }
 
 .btn-num {
-  background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
-  color: #f9fafb;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
   border: none;
   font-size: 22px;
   font-weight: 700;
@@ -359,14 +363,14 @@ body {
   border-radius: 8px;
   cursor: pointer;
   box-shadow: 
-    0 4px #111827,
+    0 4px #020617,
     inset 0 1px 1px rgba(255, 255, 255, 0.2);
   transition: all 0.08s ease;
 }
 
 .btn-num:active {
   transform: translateY(3px);
-  box-shadow: 0 1px #111827;
+  box-shadow: 0 1px #020617;
 }
 
 /* BOTÕES DE AÇÃO */
@@ -391,7 +395,7 @@ body {
 
 .btn-branco {
   background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
-  color: #1e293b;
+  color: #0f172a;
   box-shadow: 0 4px #94a3b8;
 }
 
@@ -401,18 +405,18 @@ body {
 }
 
 .btn-corrige {
-  background: linear-gradient(180deg, #ea580c 0%, #c2410c 100%);
+  background: linear-gradient(180deg, #f97316 0%, #ea580c 100%);
   color: #ffffff;
-  box-shadow: 0 4px #7c2d12;
+  box-shadow: 0 4px #9a3412;
 }
 
 .btn-corrige:active {
   transform: translateY(3px);
-  box-shadow: 0 1px #7c2d12;
+  box-shadow: 0 1px #9a3412;
 }
 
 .btn-confirma {
-  background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
   color: #ffffff;
   box-shadow: 0 5px #14532d;
   font-size: 12px;
@@ -430,7 +434,7 @@ body {
   text-align: center;
   margin-top: 14px;
   font-size: 11px;
-  color: #94a3b8;
+  color: #cbd5e1;
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -443,23 +447,25 @@ body {
 /* RESPONSIVIDADE PARA CELULARES */
 @media (max-width: 768px) {
   body {
-    padding: 10px;
+    padding: 12px 8px;
     align-items: flex-start;
+    background: #f1f5f9;
   }
 
   .urna-container {
     flex-direction: column;
-    padding: 16px;
-    gap: 16px;
+    padding: 14px;
+    gap: 14px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   }
 
   .tela-container {
-    min-height: 320px;
-    padding: 16px;
+    min-height: 310px;
+    padding: 14px;
   }
 
   .cargo-titulo {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .digito {
@@ -468,12 +474,21 @@ body {
     font-size: 22px;
   }
 
+  .teclado-container {
+    padding: 14px;
+  }
+
   .teclado-numerico {
     padding: 0;
+    gap: 8px;
+  }
+
+  .btn-num {
+    padding: 10px 0;
   }
 }
 
-/* SUPRESSÃO FORÇADA DE SELOS E BADGES DO NETLIFY */
+/* SUPRESSÃO DE ELEMENTOS DO NETLIFY */
 [class*="netlify"],
 [id*="netlify"],
 .netlify-badge,
