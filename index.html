@@ -21,21 +21,12 @@
 
       <div class="modal-orientacoes">
         <p>
-          Para assegurar a integridade da pesquisa e impedir votos repetidos, 
-          informe seu identificador único.
+          Para assegurar a integridade da pesquisa e impedir votos duplicados, 
+          digite apenas os 11 números do seu <b>CPF</b>.
         </p>
 
-        <div class="sugestao-id">
-          <strong>Você pode utilizar:</strong>
-          <ul>
-            <li>Número de celular / WhatsApp (com DDD);</li>
-            <li>Número de CPF; ou</li>
-            <li>Código individual fornecido pela organização.</li>
-          </ul>
-        </div>
-
         <div class="aviso-sigilo">
-          🔒 <b>Sigilo Garantido:</b> O identificador serve apenas para registro de presença. Suas escolhas são gravadas de forma 100% anônima e desassociada.
+          🔒 <b>Sigilo Garantido:</b> O CPF serve exclusivamente para registrar sua presença no livro de votantes. Suas escolhas na urna são gravadas de forma 100% anônima e desassociada.
         </div>
 
         <div class="aviso-expiracao">
@@ -43,10 +34,14 @@
         </div>
       </div>
 
+      <!-- Campo com máscara automática de CPF -->
       <input 
         type="text" 
         id="eleitor-id-input" 
-        placeholder="Digite seu celular, CPF ou código..." 
+        placeholder="Digite apenas os números do CPF..." 
+        maxlength="14"
+        inputmode="numeric"
+        oninput="mascaraCPF(this)"
         autofocus
       >
       

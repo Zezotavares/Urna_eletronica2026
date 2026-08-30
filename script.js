@@ -23,6 +23,48 @@ let candidatoAtual = null;
 let buscandoCandidato = false;
 let primeiroSenadorVotado = null;
 
+// Chave da trava local no navegador
+const CHAVE_STORAGE_TRAVA = 'urna_popular_2026_participacao';
+
+// MÁSCARA AUTOMÁTICA EXCLUSIVA PARA CPF
+function mascaraCPF(input) {
+  let v = input.value.replace(/\D/g, ''); // Permite estritamente números
+
+  if (v.length > 11) {
+    v = v.substring(0, 11);
+  }
+
+  if (v.length > 9) {
+    v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+  } else if (v.length > 6) {
+    v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+  } else if (v.length > 3) {
+    v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+  }
+
+  input.value = v;
+}
+
+// VALIDADOR MATEMÁTICO RIGOROSO DE CPF (11 DÍGITOS)
+function validarCPF(cpf) {
+  cpf = String(cpf).replace(/[^\d]+/g, '');
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+  let soma = 0, resto;
+  for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+  resto = (soma * 10) % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== parseInt(cpf.substring(9, 10))) return false;
+
+  soma = 0;
+  for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+  resto = (soma * 10) % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== parseInt(cpf.substring(10, 11))) return false;
+
+  return true;
+}
+
 // Contexto de áudio
 let audioCtx = null;
 function obterAudioContext() {
@@ -35,7 +77,7 @@ function obterAudioContext() {
   return audioCtx;
 }
 
-// Higienização de caracteres corrompidos por encoding (UTF-8 / Latin1)
+// Higienização de caracteres corrompidos por encoding
 function limparTextoCorrompido(texto) {
   if (!texto) return '';
 
@@ -121,24 +163,40 @@ function tocarSomFim() {
   } catch (e) {}
 }
 
-// Validação no Livro de Presença (eleitores_votantes)
+// Validação com Trava Dupla (Navegador + Validação de CPF + Supabase)
 async function iniciarVotacao() {
   obterAudioContext();
   const inputID = document.getElementById('eleitor-id-input');
   const msgModal = document.getElementById('modal-msg');
-  const idLimpo = inputID.value.trim();
+  
+  // Extrai exclusivamente os 11 dígitos numéricos
+  const cpfLimpo = inputID.value.trim().replace(/[^\d]+/g, '');
 
-  if (!idLimpo) {
-    msgModal.innerText = "Por favor, informe seu ID.";
+  // 1. Trava por dispositivo/navegador
+  if (localStorage.getItem(CHAVE_STORAGE_TRAVA)) {
+    msgModal.innerText = "ATENÇÃO: Este dispositivo/navegador já registrou um voto nesta pesquisa!";
+    return;
+  }
+
+  // 2. Trava de campo vazio
+  if (!cpfLimpo) {
+    msgModal.innerText = "Por favor, digite os números do seu CPF.";
+    return;
+  }
+
+  // 3. Validação matemática rigorosa do CPF
+  if (!validarCPF(cpfLimpo)) {
+    msgModal.innerText = "CPF inválido. Verifique os números digitados.";
     return;
   }
 
   msgModal.innerText = "Verificando habilitação do eleitor...";
 
+  // 4. Trava no Livro de Presença do Supabase (impede voto duplo com o mesmo CPF)
   const { data, error } = await _supabase
     .from('eleitores_votantes')
     .select('id')
-    .eq('eleitor_id', idLimpo);
+    .eq('eleitor_id', cpfLimpo);
 
   if (error) {
     msgModal.innerText = "Erro ao conectar com o banco: " + error.message;
@@ -146,16 +204,16 @@ async function iniciarVotacao() {
   }
 
   if (data && data.length > 0) {
-    msgModal.innerText = "ATENÇÃO: Este ID já registrou presença e votou!";
+    msgModal.innerText = "ATENÇÃO: Este CPF já registrou presença e votou!";
     return;
   }
 
-  eleitorID = idLimpo;
+  eleitorID = cpfLimpo;
   document.getElementById('modal-id').style.display = 'none';
   atualizarTela();
 }
 
-// Busca candidato sob demanda e aplica a limpeza nos dados retornados
+// Busca candidato no Supabase
 async function buscarCandidatoNoBanco(numero) {
   const etapa = etapas[etapaAtual];
   buscandoCandidato = true;
@@ -182,7 +240,7 @@ async function buscarCandidatoNoBanco(numero) {
   atualizarTela();
 }
 
-// Atualização visual da tela LCD
+// Atualização da tela LCD
 function atualizarTela() {
   const etapa = etapas[etapaAtual];
   const containerTela = document.getElementById('tela');
@@ -304,14 +362,12 @@ async function confirmar() {
 
   const hashVoto = Math.random().toString(36).substring(2, 10).toUpperCase() + Date.now().toString(36).toUpperCase();
 
-  // Dados para o Banco (100% ANÔNIMOS, SEM vínculo com o ID do eleitor)
   votosParaBanco.push({
     cargo: etapa.cargo,
     numero_candidato: numeroVoto,
     hash_validacao: hashVoto
   });
 
-  // Dados para o Comprovante em PDF
   votosParaCanhoto.push({
     cargo: etapa.cargo,
     numero: numeroVoto,
@@ -346,6 +402,11 @@ async function confirmar() {
       console.error("Erro na gravação:", erroPresenca || erroVoto);
       document.getElementById('tela').innerHTML = `<div style="font-size:16px; color:red; padding:15px; text-align:center;"><b>ERRO AO REGISTRAR VOTO:</b><br>${(erroPresenca || erroVoto).message}</div>`;
     } else {
+      // 3. Aplica a trava no navegador local
+      try {
+        localStorage.setItem(CHAVE_STORAGE_TRAVA, 'votou_' + Date.now());
+      } catch (e) {}
+
       document.getElementById('tela').innerHTML = `
         <div style="text-align: center; padding-top: 30px;">
           <div class="tela-fim" style="height: auto; margin-bottom: 20px;">FIM</div>
@@ -381,7 +442,7 @@ function gerarCanhotoPDF() {
   doc.setFontSize(8);
   doc.text('----------------------------------------', 40, 20, { align: 'center' });
   doc.text(`DATA: ${dataFormatada}  HORA: ${horaFormatada}`, 5, 25);
-  doc.text(`ELEITOR ID: ${eleitorID}`, 5, 30);
+  doc.text(`ELEITOR: CPF REGISTRADO`, 5, 30);
   doc.text(`AUTENTICACAO: ${codigoAutenticacao}`, 5, 35);
   doc.text('----------------------------------------', 40, 40, { align: 'center' });
 
@@ -411,5 +472,5 @@ function gerarCanhotoPDF() {
   doc.text('Este documento e pessoal e comprova', 40, posicaoY + 5, { align: 'center' });
   doc.text('a participacao nesta pesquisa.', 40, posicaoY + 9, { align: 'center' });
 
-  doc.save(`Comprovante_Pesquisa_${eleitorID}.pdf`);
+  doc.save(`Comprovante_Pesquisa_${codigoAutenticacao}.pdf`);
 }
