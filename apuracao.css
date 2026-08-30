@@ -434,3 +434,21 @@ body {
     justify-content: space-between;
   }
 }
+
+/* SUPRESSÃO FORÇADA DE SELOS E BADGES DO NETLIFY */
+[class*="netlify"],
+[id*="netlify"],
+.netlify-badge,
+.netlify-badge-container,
+a[href*="netlify.com"],
+iframe[src*="netlify"],
+div[data-netlify] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  position: absolute !important;
+  z-index: -9999 !important;
+}
