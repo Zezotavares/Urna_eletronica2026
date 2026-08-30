@@ -28,7 +28,7 @@ const CHAVE_STORAGE_TRAVA = 'urna_popular_2026_participacao';
 
 // MÁSCARA AUTOMÁTICA EXCLUSIVA PARA CPF
 function mascaraCPF(input) {
-  let v = input.value.replace(/\D/g, ''); // Permite estritamente números
+  let v = input.value.replace(/\D/g, '');
 
   if (v.length > 11) {
     v = v.substring(0, 11);
@@ -169,7 +169,6 @@ async function iniciarVotacao() {
   const inputID = document.getElementById('eleitor-id-input');
   const msgModal = document.getElementById('modal-msg');
   
-  // Extrai exclusivamente os 11 dígitos numéricos
   const cpfLimpo = inputID.value.trim().replace(/[^\d]+/g, '');
 
   // 1. Trava por dispositivo/navegador
@@ -192,7 +191,7 @@ async function iniciarVotacao() {
 
   msgModal.innerText = "Verificando habilitação do eleitor...";
 
-  // 4. Trava no Livro de Presença do Supabase (impede voto duplo com o mesmo CPF)
+  // 4. Trava no Livro de Presença do Supabase
   const { data, error } = await _supabase
     .from('eleitores_votantes')
     .select('id')
@@ -408,69 +407,105 @@ async function confirmar() {
       } catch (e) {}
 
       document.getElementById('tela').innerHTML = `
-        <div style="text-align: center; padding-top: 30px;">
+        <div style="text-align: center; padding-top: 25px;">
           <div class="tela-fim" style="height: auto; margin-bottom: 20px;">FIM</div>
-          <button onclick="gerarCanhotoPDF()" style="background: #16a34a; color: #ffffff; border: none; padding: 12px 20px; font-size: 14px; font-weight: 700; border-radius: 8px; cursor: pointer; box-shadow: 0 4px #14532d; transition: all 0.2s;">
-            📄 BAIXAR COMPROVANTE (CANHOTO PDF)
+          <button id="btn-baixar-canhoto" onclick="gerarCanhotoPDF()" style="background: #16a34a; color: #ffffff; border: none; padding: 14px 20px; font-size: 14px; font-weight: 700; border-radius: 8px; cursor: pointer; box-shadow: 0 4px #14532d; transition: all 0.2s; width: 90%; max-width: 320px;">
+            📄 BAIXAR COMPROVANTE (PDF)
           </button>
+          <div id="status-download-pdf" style="font-size: 12px; color: #475569; margin-top: 10px;"></div>
         </div>
       `;
     }
   }
 }
 
-// Geração do Comprovante / Canhoto em PDF
+// GERAÇÃO DO COMPROVANTE / CANHOTO EM PDF (COMPATÍVEL COM CELULARES)
 function gerarCanhotoPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    unit: 'mm',
-    format: [80, 150]
-  });
+  const statusEl = document.getElementById('status-download-pdf');
+  if (statusEl) statusEl.innerText = "Gerando comprovante...";
 
-  const agora = new Date();
-  const dataFormatada = agora.toLocaleDateString('pt-BR');
-  const horaFormatada = agora.toLocaleTimeString('pt-BR');
-  const codigoAutenticacao = Math.random().toString(36).substring(2, 12).toUpperCase();
+  // Validação da biblioteca jsPDF
+  const jsPDFClass = window.jspdf ? window.jspdf.jsPDF : (window.jsPDF || null);
+  if (!jsPDFClass) {
+    alert("Erro: A biblioteca de geração de PDF não pôde ser carregada. Por favor, tire um print desta tela como comprovante.");
+    if (statusEl) statusEl.innerText = "";
+    return;
+  }
 
-  doc.setFont('courier', 'bold');
-  doc.setFontSize(10.5);
-  doc.text('PESQUISA POPULAR INFORMAL', 40, 10, { align: 'center' });
-  doc.setFontSize(9);
-  doc.text('COMPROVANTE DE VOTACAO', 40, 15, { align: 'center' });
-  
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(8);
-  doc.text('----------------------------------------', 40, 20, { align: 'center' });
-  doc.text(`DATA: ${dataFormatada}  HORA: ${horaFormatada}`, 5, 25);
-  doc.text(`ELEITOR: CPF REGISTRADO`, 5, 30);
-  doc.text(`AUTENTICACAO: ${codigoAutenticacao}`, 5, 35);
-  doc.text('----------------------------------------', 40, 40, { align: 'center' });
+  try {
+    const doc = new jsPDFClass({
+      unit: 'mm',
+      format: [80, 155]
+    });
 
-  doc.setFont('courier', 'bold');
-  doc.setFontSize(8);
-  doc.text('CANDIDATOS ESCOLHIDOS:', 5, 46);
+    const agora = new Date();
+    const dataFormatada = agora.toLocaleDateString('pt-BR');
+    const horaFormatada = agora.toLocaleTimeString('pt-BR');
+    const codigoAutenticacao = Math.random().toString(36).substring(2, 12).toUpperCase();
 
-  let posicaoY = 53;
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(7.5);
-
-  votosParaCanhoto.forEach(item => {
     doc.setFont('courier', 'bold');
-    doc.text(`${item.cargo.toUpperCase()}:`, 5, posicaoY);
+    doc.setFontSize(10);
+    doc.text('PESQUISA POPULAR INFORMAL', 40, 10, { align: 'center' });
+    doc.setFontSize(8.5);
+    doc.text('COMPROVANTE DE VOTACAO', 40, 15, { align: 'center' });
+    
     doc.setFont('courier', 'normal');
-    doc.text(`No: ${item.numero} - ${item.nome}`, 5, posicaoY + 4);
-    if (item.partido && item.partido !== '-') {
-      doc.text(`Part: ${item.partido}`, 5, posicaoY + 8);
-      posicaoY += 13;
-    } else {
-      posicaoY += 9;
-    }
-  });
+    doc.setFontSize(8);
+    doc.text('----------------------------------------', 40, 20, { align: 'center' });
+    doc.text(`DATA: ${dataFormatada}  HORA: ${horaFormatada}`, 5, 25);
+    doc.text(`ELEITOR: CPF REGISTRADO`, 5, 30);
+    doc.text(`AUTENTICACAO: ${codigoAutenticacao}`, 5, 35);
+    doc.text('----------------------------------------', 40, 40, { align: 'center' });
 
-  doc.text('----------------------------------------', 40, posicaoY, { align: 'center' });
-  doc.setFontSize(7);
-  doc.text('Este documento e pessoal e comprova', 40, posicaoY + 5, { align: 'center' });
-  doc.text('a participacao nesta pesquisa.', 40, posicaoY + 9, { align: 'center' });
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(8);
+    doc.text('CANDIDATOS ESCOLHIDOS:', 5, 46);
 
-  doc.save(`Comprovante_Pesquisa_${codigoAutenticacao}.pdf`);
+    let posicaoY = 53;
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(7.5);
+
+    votosParaCanhoto.forEach(item => {
+      doc.setFont('courier', 'bold');
+      doc.text(`${item.cargo.toUpperCase()}:`, 5, posicaoY);
+      doc.setFont('courier', 'normal');
+      doc.text(`No: ${item.numero} - ${item.nome}`, 5, posicaoY + 4);
+      if (item.partido && item.partido !== '-') {
+        doc.text(`Part: ${item.partido}`, 5, posicaoY + 8);
+        posicaoY += 13;
+      } else {
+        posicaoY += 9;
+      }
+    });
+
+    doc.text('----------------------------------------', 40, posicaoY, { align: 'center' });
+    doc.setFontSize(7);
+    doc.text('Este documento e pessoal e comprova', 40, posicaoY + 5, { align: 'center' });
+    doc.text('a participacao nesta pesquisa.', 40, posicaoY + 9, { align: 'center' });
+
+    const nomeArquivo = `Comprovante_Pesquisa_${codigoAutenticacao}.pdf`;
+
+    // Rotina universal de download e abertura compatível com mobile
+    const pdfBlob = doc.output('blob');
+    const blobUrl = URL.createObjectURL(pdfBlob);
+
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = nomeArquivo;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Libera a memória após o clique
+    setTimeout(() => {
+      URL.revokeObjectURL(blobUrl);
+      if (statusEl) statusEl.innerText = "Comprovante gerado com sucesso!";
+    }, 1500);
+
+  } catch (erro) {
+    console.error("Erro ao gerar PDF no mobile:", erro);
+    alert("Não foi possível salvar o arquivo automaticamente no celular. Recomendamos tirar um print screen.");
+    if (statusEl) statusEl.innerText = "";
+  }
 }
