@@ -112,18 +112,28 @@ async function renderizarCargoAtual() {
 
   const candidatosDoCargo = candidatosCache[cargoSelecionado];
 
+  // Filtra votos deste cargo
   const votosDoCargo = votosTotaisCache.filter(v => v.cargo === cargoSelecionado);
   const totalVotos = votosDoCargo.length;
 
-  document.getElementById('total-votos-cargo').innerText = totalVotos;
-
   popularSelectPartidos(candidatosDoCargo);
 
+  // Contagem individual
   const contagem = {};
   votosDoCargo.forEach(v => {
     const num = v.numero_candidato;
     contagem[num] = (contagem[num] || 0) + 1;
   });
+
+  const qtdBranco = contagem['BRANCO'] || 0;
+  const qtdNulo = contagem['NULO'] || 0;
+  const totalValidos = Math.max(0, totalVotos - qtdBranco - qtdNulo);
+
+  // Atualiza os contadores no topo
+  document.getElementById('total-votos-cargo').innerText = totalVotos;
+  document.getElementById('total-votos-validos').innerText = totalValidos;
+  document.getElementById('total-votos-brancos').innerText = qtdBranco;
+  document.getElementById('total-votos-nulos').innerText = qtdNulo;
 
   const resultado = [];
 
@@ -140,32 +150,33 @@ async function renderizarCargoAtual() {
     });
   });
 
-  if (contagem['BRANCO'] || totalVotos > 0) {
-    const qtd = contagem['BRANCO'] || 0;
-    const pct = totalVotos > 0 ? ((qtd / totalVotos) * 100).toFixed(2) : "0.00";
+  // Brancos
+  if (qtdBranco > 0 || totalVotos > 0) {
+    const pct = totalVotos > 0 ? ((qtdBranco / totalVotos) * 100).toFixed(2) : "0.00";
     resultado.push({
       numero: '--',
       nome: 'VOTO EM BRANCO',
       partido: 'Opção do Eleitor',
-      votos: qtd,
+      votos: qtdBranco,
       porcentagem: pct,
       tipo: 'especial'
     });
   }
 
-  if (contagem['NULO'] || totalVotos > 0) {
-    const qtd = contagem['NULO'] || 0;
-    const pct = totalVotos > 0 ? ((qtd / totalVotos) * 100).toFixed(2) : "0.00";
+  // Nulos
+  if (qtdNulo > 0 || totalVotos > 0) {
+    const pct = totalVotos > 0 ? ((qtdNulo / totalVotos) * 100).toFixed(2) : "0.00";
     resultado.push({
       numero: '--',
       nome: 'VOTO NULO',
       partido: 'Opção do Eleitor',
-      votos: qtd,
+      votos: qtdNulo,
       porcentagem: pct,
       tipo: 'especial'
     });
   }
 
+  // Ordena por maior número de votos
   resultado.sort((a, b) => b.votos - a.votos);
 
   listaConsolidadaAtual = resultado;
@@ -189,37 +200,58 @@ function popularSelectPartidos(candidatos) {
   }
 }
 
+// Filtros combinados: Votação (>0 / Todos / 0), Partido e Busca por Texto
 function filtrarResultados() {
   const container = document.getElementById('lista-candidatos-apuracao');
   const termoBusca = document.getElementById('input-busca').value.toLowerCase().trim();
   const partidoFiltro = document.getElementById('select-partido').value;
+  const filtroVotos = document.getElementById('select-filtro-votos').value;
 
   let filtrados = listaConsolidadaAtual.filter(item => {
+    // 1. Filtro por presença de votos
+    let atendeVotos = true;
+    if (filtroVotos === 'COM_VOTOS') {
+      atendeVotos = item.votos > 0;
+    } else if (filtroVotos === 'SEM_VOTOS') {
+      atendeVotos = item.votos === 0 && item.tipo === 'candidato';
+    }
+
+    // 2. Filtro por partido
     const atendePartido = (partidoFiltro === 'TODOS') || (item.partido === partidoFiltro);
+
+    // 3. Filtro por texto
     const atendeTexto = (
       item.nome.toLowerCase().includes(termoBusca) ||
       item.numero.toLowerCase().includes(termoBusca) ||
       item.partido.toLowerCase().includes(termoBusca)
     );
-    return atendePartido && atendeTexto;
+
+    return atendeVotos && atendePartido && atendeTexto;
   });
 
   if (filtrados.length === 0) {
-    container.innerHTML = `<div class="carregando">Nenhum resultado correspondente aos filtros aplicados.</div>`;
+    container.innerHTML = `<div class="carregando">Nenhum resultado encontrado com os filtros selecionados.</div>`;
     return;
   }
 
   let html = '';
   filtrados.forEach((item, index) => {
-    const classeLider = (index === 0 && item.votos > 0 && item.tipo === 'candidato') ? 'lider-votos' : '';
+    const isLider = (index === 0 && item.votos > 0 && item.tipo === 'candidato');
+    const classeCard = isLider ? 'lider-votos' : (item.votos > 0 ? 'com-voto' : '');
+    
+    const badgeColocacao = item.tipo === 'candidato' && item.votos > 0
+      ? `<span class="colocacao-badge">${index + 1}º</span>` 
+      : '';
+
     const tagHTML = item.tipo === 'candidato' 
       ? `<span class="tag-status-pesquisa">Candidatura Registrada</span>` 
       : `<span class="tag-especial">${item.nome}</span>`;
 
     html += `
-      <div class="item-candidato-card ${classeLider}">
+      <div class="item-candidato-card ${classeCard}">
         <div class="linha-informacoes-candidato">
           <div class="dados-texto">
+            ${badgeColocacao}
             <span class="nome-candidato">${item.nome}</span>
             <span class="divisor-ponto">•</span>
             <span class="partido-tag">${item.partido}</span>
@@ -243,7 +275,7 @@ function filtrarResultados() {
   container.innerHTML = html;
 }
 
-// FUNÇÃO DE EMISSÃO DA EVOLUÇÃO DOS VOTOS EM PDF
+// GERAÇÃO DO PDF DA EVOLUÇÃO DOS VOTOS
 async function gerarEvolucaoPDF() {
   await carregarApuracao();
 
@@ -284,7 +316,6 @@ async function gerarEvolucaoPDF() {
   doc.text('---------------------------------------------------------------------------------', 105, y, { align: 'center' });
   y += 8;
 
-  // Itera por todos os 6 cargos gerando o ranqueamento dos votos
   for (const [cargo, tabela] of Object.entries(tabelasCargos)) {
     if (y > 255) {
       doc.addPage();
@@ -333,7 +364,6 @@ async function gerarEvolucaoPDF() {
       });
     });
 
-    // Brancos e Nulos
     const qtdBranco = contagem['BRANCO'] || 0;
     const pctBranco = totalVotosCargo > 0 ? ((qtdBranco / totalVotosCargo) * 100).toFixed(2) : "0.00";
     resultadoCargo.push({
@@ -354,21 +384,21 @@ async function gerarEvolucaoPDF() {
       porcentagem: pctNulo
     });
 
-    // Ordena pelo maior número de votos
     resultadoCargo.sort((a, b) => b.votos - a.votos);
 
-    resultadoCargo.forEach(c => {
+    resultadoCargo.forEach((c, idx) => {
       if (y > 280) {
         doc.addPage();
         y = 15;
       }
+      const posFmt = (c.votos > 0 && c.numero !== 'BRANCO' && c.numero !== 'NULO' ? `${idx + 1}o` : ' -').padEnd(4, ' ');
       const numFmt = c.numero.padEnd(6, ' ');
-      const nomeFmt = c.nome.padEnd(34, ' ').substring(0, 34);
-      const partFmt = c.partido.padEnd(18, ' ').substring(0, 18);
+      const nomeFmt = c.nome.padEnd(32, ' ').substring(0, 32);
+      const partFmt = c.partido.padEnd(16, ' ').substring(0, 16);
       const votosFmt = String(c.votos).padStart(4, ' ') + ' VOTO(S)';
       const pctFmt = `[${c.porcentagem.padStart(6, ' ')}%]`;
 
-      const linha = `${numFmt} ${nomeFmt} ${partFmt} ${votosFmt} ${pctFmt}`;
+      const linha = `${posFmt} ${numFmt} ${nomeFmt} ${partFmt} ${votosFmt} ${pctFmt}`;
       doc.text(linha, 14, y);
       y += 4.2;
     });
@@ -395,7 +425,7 @@ async function gerarEvolucaoPDF() {
   doc.save(`Evolucao_Votos_Pesquisa_${dataFormatada.replace(/\//g, '-')}_${horaFormatada.replace(/:/g, '')}.pdf`);
 }
 
-// FUNÇÃO DE SOLICITAÇÃO DA ZERÉSIMA E RESET DA URNA
+// SOLICITAÇÃO DA ZERÉSIMA E RESET
 async function solicitarZeresima() {
   const senha = prompt("ATENÇÃO: Isso irá zerar TODOS os votos registrados e a lista de eleitores votantes!\n\nDigite a senha mestra administrativa para confirmar:");
 
@@ -413,7 +443,7 @@ async function solicitarZeresima() {
   alert("Zerésima emitida e banco de dados reinicializado com sucesso!");
 }
 
-// GERAÇÃO DO PDF DA ZERÉSIMA
+// PDF DA ZERÉSIMA
 async function gerarRelatorioZeresimaPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({

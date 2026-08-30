@@ -45,6 +45,7 @@
       </div>
 
       <div class="grade-filtros">
+        <!-- 1. Cargo -->
         <div class="grupo-campo">
           <label for="select-cargo">Cargo em Disputa:</label>
           <select id="select-cargo" onchange="mudarCargoViaSelect()">
@@ -57,8 +58,19 @@
           </select>
         </div>
 
+        <!-- 2. Filtro de Votados (Destaque para quem pontuou) -->
         <div class="grupo-campo">
-          <label for="select-partido">Filtrar por Partido / Coligação:</label>
+          <label for="select-filtro-votos">Filtrar por Votação:</label>
+          <select id="select-filtro-votos" onchange="filtrarResultados()">
+            <option value="COM_VOTOS">⭐ Apenas quem recebeu votos (> 0)</option>
+            <option value="TODOS">Todos os candidatos registrados</option>
+            <option value="SEM_VOTOS">Apenas candidatos sem votos (0)</option>
+          </select>
+        </div>
+
+        <!-- 3. Partido -->
+        <div class="grupo-campo">
+          <label for="select-partido">Filtrar por Partido:</label>
           <select id="select-partido" onchange="filtrarResultados()">
             <option value="TODOS">Todos os Partidos / Federações</option>
           </select>
@@ -71,13 +83,11 @@
             🔄 Atualizar Contagem
           </button>
           
-          <!-- Botão de Emissão da Evolução dos Votos -->
           <button onclick="gerarEvolucaoPDF()" style="background-color:#0284c7; color:#ffffff; border:none; padding:10px 18px; border-radius:8px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(2, 132, 199, 0.25); transition:background-color 0.2s;">
             📈 Emitir Evolução dos Votos (PDF)
           </button>
         </div>
 
-        <!-- Botão Administrativo da Zerésima -->
         <button onclick="solicitarZeresima()" style="background-color:#991b1b; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-size:13.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
           📄 Emitir Zerésima e Resetar Urna
         </button>
@@ -86,14 +96,28 @@
 
     <!-- Painel de Resultados e Estatísticas -->
     <section class="card-painel card-listagem">
+      
+      <!-- Detalhamento de Totais por Categoria -->
       <div class="cabecalho-estatisticas">
         <div class="cards-metricas">
           <div class="metrica-item">
-            <span class="metrica-rotulo">Votos neste Cargo</span>
+            <span class="metrica-rotulo">Total de Votos (Cargo)</span>
             <span class="metrica-valor" id="total-votos-cargo">0</span>
           </div>
+          <div class="metrica-item destaque-validos">
+            <span class="metrica-rotulo">Votos Válidos</span>
+            <span class="metrica-valor" id="total-votos-validos">0</span>
+          </div>
           <div class="metrica-item">
-            <span class="metrica-rotulo">Participantes Totais</span>
+            <span class="metrica-rotulo">Brancos</span>
+            <span class="metrica-valor" id="total-votos-brancos">0</span>
+          </div>
+          <div class="metrica-item">
+            <span class="metrica-rotulo">Nulos</span>
+            <span class="metrica-valor" id="total-votos-nulos">0</span>
+          </div>
+          <div class="metrica-item">
+            <span class="metrica-rotulo">Eleitores Votantes</span>
             <span class="metrica-valor" id="total-votantes">0</span>
           </div>
         </div>
