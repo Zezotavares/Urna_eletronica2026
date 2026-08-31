@@ -22,7 +22,7 @@ body {
 #modal-id {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(6px);
   display: flex;
   justify-content: center;
@@ -34,18 +34,18 @@ body {
 
 .modal-box {
   background: #ffffff;
-  padding: 32px 28px;
-  border-radius: 18px;
-  max-width: 480px;
+  padding: 36px 28px;
+  border-radius: 20px;
+  max-width: 440px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.28);
   border: 1px solid #e2e8f0;
   margin: auto;
 }
 
 .modal-icone {
-  font-size: 32px;
+  font-size: 36px;
   margin-bottom: 8px;
 }
 
@@ -54,7 +54,7 @@ body {
   font-weight: 800;
   color: #0f172a;
   letter-spacing: 0.3px;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 .modal-subtitulo {
@@ -70,13 +70,14 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 .modal-orientacoes p {
-  font-size: 13px;
+  font-size: 13.5px;
   color: #475569;
   line-height: 1.5;
+  text-align: center;
 }
 
 .aviso-sigilo {
@@ -84,79 +85,59 @@ body {
   border: 1px solid #a7f3d0;
   color: #065f46;
   font-size: 12px;
-  padding: 10px 12px;
+  padding: 10px 14px;
   border-radius: 8px;
   line-height: 1.45;
 }
 
-.aviso-expiracao {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e40af;
-  font-size: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  line-height: 1.45;
-}
-
-.modal-box input {
+/* BOTÃO DE LOGIN COM O GOOGLE */
+.btn-google-auth {
   width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #cbd5e1;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  text-align: center;
-  color: #0f172a;
-  background: #f8fafc;
-  outline: none;
-  transition: all 0.2s ease;
-  margin-bottom: 14px;
-}
-
-.modal-box input:focus {
-  border-color: #2563eb;
+  padding: 14px 18px;
   background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
-}
-
-.modal-box button {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  color: #ffffff;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
+  color: #1f2937;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 14.5px;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-.modal-box button:hover {
+.btn-google-auth:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
 }
 
-.modal-box button:active {
+.btn-google-auth:active {
   transform: translateY(1px);
 }
 
+.icone-google-svg {
+  width: 22px;
+  height: 22px;
+}
+
 #modal-msg {
-  margin-top: 12px;
+  margin-top: 14px;
   font-size: 12.5px;
   font-weight: 600;
-  min-height: 16px;
+  min-height: 18px;
   color: #ef4444;
 }
 
 .modal-rodape-legal {
-  margin-top: 14px;
+  margin-top: 16px;
   font-size: 11px;
   color: #94a3b8;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 /* MODAL DA COLINHA ELEITORAL */

@@ -23,48 +23,10 @@ let candidatoAtual = null;
 let buscandoCandidato = false;
 let primeiroSenadorVotado = null;
 let listaColinhaCache = {};
+let autenticacaoJaProcessada = false;
 
 // Chave da trava local no navegador
 const CHAVE_STORAGE_TRAVA = 'urna_popular_2026_participacao';
-
-// MÁSCARA AUTOMÁTICA EXCLUSIVA PARA CPF
-function mascaraCPF(input) {
-  let v = input.value.replace(/\D/g, '');
-
-  if (v.length > 11) {
-    v = v.substring(0, 11);
-  }
-
-  if (v.length > 9) {
-    v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
-  } else if (v.length > 6) {
-    v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
-  } else if (v.length > 3) {
-    v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
-  }
-
-  input.value = v;
-}
-
-// VALIDADOR MATEMÁTICO RIGOROSO DE CPF (11 DÍGITOS)
-function validarCPF(cpf) {
-  cpf = String(cpf).replace(/[^\d]+/g, '');
-  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
-
-  let soma = 0, resto;
-  for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
-  resto = (soma * 10) % 11;
-  if (resto === 10 || resto === 11) resto = 0;
-  if (resto !== parseInt(cpf.substring(9, 10))) return false;
-
-  soma = 0;
-  for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
-  resto = (soma * 10) % 11;
-  if (resto === 10 || resto === 11) resto = 0;
-  if (resto !== parseInt(cpf.substring(10, 11))) return false;
-
-  return true;
-}
 
 // Contexto de áudio
 let audioCtx = null;
@@ -164,50 +126,91 @@ function tocarSomFim() {
   } catch (e) {}
 }
 
-// Validação com Trava Dupla (Navegador + CPF + Supabase)
-async function iniciarVotacao() {
-  obterAudioContext();
-  const inputID = document.getElementById('eleitor-id-input');
+// ----------------------------------------------------
+// AUTENTICAÇÃO COM O GOOGLE
+// ----------------------------------------------------
+async function loginComGoogle() {
   const msgModal = document.getElementById('modal-msg');
+  if (msgModal) msgModal.innerText = "Conectando com o Google...";
+
+  try {
+    const { data, error } = await _supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname
+      }
+    });
+
+    if (error) {
+      if (msgModal) msgModal.innerText = "Erro ao autenticar: " + error.message;
+    }
+  } catch (err) {
+    if (msgModal) msgModal.innerText = "Falha na conexão com o Google.";
+  }
+}
+
+// VALIDAÇÃO CENTRAL DA CONTA GOOGLE (1 VOTO POR E-MAIL)
+async function validarEIniciarCabine(identificadorUnico) {
+  if (autenticacaoJaProcessada && eleitorID) return;
   
-  const cpfLimpo = inputID.value.trim().replace(/[^\d]+/g, '');
+  obterAudioContext();
+  const msgModal = document.getElementById('modal-msg');
 
   if (localStorage.getItem(CHAVE_STORAGE_TRAVA)) {
-    msgModal.innerText = "ATENÇÃO: Este dispositivo/navegador já registrou um voto nesta pesquisa!";
+    if (msgModal) msgModal.innerText = "ATENÇÃO: Este dispositivo já registrou um voto nesta pesquisa!";
     return;
   }
 
-  if (!cpfLimpo) {
-    msgModal.innerText = "Por favor, digite os números do seu CPF.";
-    return;
-  }
-
-  if (!validarCPF(cpfLimpo)) {
-    msgModal.innerText = "CPF inválido. Verifique os números digitados.";
-    return;
-  }
-
-  msgModal.innerText = "Verificando habilitação do eleitor...";
+  if (msgModal) msgModal.innerText = "Verificando participação anterior...";
 
   const { data, error } = await _supabase
     .from('eleitores_votantes')
     .select('id')
-    .eq('eleitor_id', cpfLimpo);
+    .eq('eleitor_id', identificadorUnico);
 
   if (error) {
-    msgModal.innerText = "Erro ao conectar com o banco: " + error.message;
+    if (msgModal) msgModal.innerText = "Erro ao verificar dados: " + error.message;
     return;
   }
 
   if (data && data.length > 0) {
-    msgModal.innerText = "ATENÇÃO: Este CPF já registrou presença e votou!";
+    if (msgModal) msgModal.innerText = "ATENÇÃO: Esta conta Google já registrou o seu voto!";
     return;
   }
 
-  eleitorID = cpfLimpo;
-  document.getElementById('modal-id').style.display = 'none';
+  autenticacaoJaProcessada = true;
+  eleitorID = identificadorUnico;
+  
+  // Fecha o modal e entra direto na cabine de votação
+  const modalID = document.getElementById('modal-id');
+  if (modalID) {
+    modalID.style.display = 'none';
+  }
+
+  // Limpa os parâmetros de autenticação da URL sem recarregar
+  if (window.location.hash) {
+    history.replaceState(null, document.title, window.location.pathname + window.location.search);
+  }
+
   atualizarTela();
 }
+
+// OUVINTE EM TEMPO REAL DE AUTENTICAÇÃO DO SUPABASE
+_supabase.auth.onAuthStateChange(async (event, session) => {
+  if (session && session.user && session.user.email) {
+    const emailIdentificador = 'google_' + session.user.email.toLowerCase().trim();
+    await validarEIniciarCabine(emailIdentificador);
+  }
+});
+
+// CHECAGEM DE SESSÃO ATIVA AO CARREGAR
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (session && session.user && session.user.email) {
+    const emailIdentificador = 'google_' + session.user.email.toLowerCase().trim();
+    await validarEIniciarCabine(emailIdentificador);
+  }
+});
 
 // Busca candidato no Supabase
 async function buscarCandidatoNoBanco(numero) {
@@ -400,6 +403,11 @@ async function confirmar() {
         localStorage.setItem(CHAVE_STORAGE_TRAVA, 'votou_' + Date.now());
       } catch (e) {}
 
+      // Realiza logout do Google para fechar a sessão com segurança
+      try {
+        await _supabase.auth.signOut();
+      } catch (e) {}
+
       document.getElementById('tela').innerHTML = `
         <div style="text-align: center; padding-top: 25px;">
           <div class="tela-fim" style="height: auto; margin-bottom: 20px;">FIM</div>
@@ -525,7 +533,7 @@ function gerarCanhotoPDF() {
     doc.setFontSize(8);
     doc.text('----------------------------------------', 40, 20, { align: 'center' });
     doc.text(`DATA: ${dataFormatada}  HORA: ${horaFormatada}`, 5, 25);
-    doc.text(`ELEITOR: CPF REGISTRADO`, 5, 30);
+    doc.text(`ELEITOR: CONTA GOOGLE`, 5, 30);
     doc.text(`AUTENTICACAO: ${codigoAutenticacao}`, 5, 35);
     doc.text('----------------------------------------', 40, 40, { align: 'center' });
 
