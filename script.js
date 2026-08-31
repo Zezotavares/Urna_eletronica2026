@@ -16,17 +16,71 @@ const etapas = [
 let etapaAtual = 0;
 let numeroDigitado = '';
 let votoEmBranco = false;
-let eleitorID = '';
+let eleitorEmail = '';
+let eleitorCPF = '';
+let eleitorDeviceFP = '';
 let votosParaBanco = [];
 let votosParaCanhoto = [];
 let candidatoAtual = null;
 let buscandoCandidato = false;
 let primeiroSenadorVotado = null;
 let listaColinhaCache = {};
-let autenticacaoJaProcessada = false;
 
 // Chave da trava local no navegador
 const CHAVE_STORAGE_TRAVA = 'urna_popular_2026_participacao';
+
+// OBTÉM FINGERPRINT DO DISPOSITIVO (HARDWARE / BROWSER)
+async function obterDeviceFingerprint() {
+  try {
+    if (window.FingerprintJS) {
+      const fp = await window.FingerprintJS.load();
+      const resultado = await fp.get();
+      return 'fp_' + resultado.visitorId;
+    }
+  } catch (e) {
+    console.warn("FingerprintJS não carregou:", e);
+  }
+  return 'fp_fallback_' + navigator.userAgent.replace(/\D+/g, '').substring(0, 16);
+}
+
+// MÁSCARA AUTOMÁTICA EXCLUSIVA PARA CPF
+function mascaraCPF(input) {
+  let v = input.value.replace(/\D/g, '');
+
+  if (v.length > 11) {
+    v = v.substring(0, 11);
+  }
+
+  if (v.length > 9) {
+    v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+  } else if (v.length > 6) {
+    v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+  } else if (v.length > 3) {
+    v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+  }
+
+  input.value = v;
+}
+
+// VALIDADOR MATEMÁTICO RIGOROSO DE CPF (11 DÍGITOS)
+function validarCPF(cpf) {
+  cpf = String(cpf).replace(/[^\d]+/g, '');
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+  let soma = 0, resto;
+  for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+  resto = (soma * 10) % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== parseInt(cpf.substring(9, 10))) return false;
+
+  soma = 0;
+  for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+  resto = (soma * 10) % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== parseInt(cpf.substring(10, 11))) return false;
+
+  return true;
+}
 
 // Contexto de áudio
 let audioCtx = null;
@@ -127,8 +181,10 @@ function tocarSomFim() {
 }
 
 // ----------------------------------------------------
-// AUTENTICAÇÃO COM O GOOGLE
+// FLUXO DE AUTENTICAÇÃO COM TRAVA HÍBRIDA
 // ----------------------------------------------------
+
+// 1. Iniciar login com o Google
 async function loginComGoogle() {
   const msgModal = document.getElementById('modal-msg');
   if (msgModal) msgModal.innerText = "Conectando com o Google...";
@@ -149,48 +205,78 @@ async function loginComGoogle() {
   }
 }
 
-// VALIDAÇÃO CENTRAL DA CONTA GOOGLE (1 VOTO POR E-MAIL)
-async function validarEIniciarCabine(identificadorUnico) {
-  if (autenticacaoJaProcessada && eleitorID) return;
-  
+// 2. Quando o Google retorna autenticado, exibe o formulário do 2º passo (CPF)
+async function tratarRetornoGoogle(userEmail) {
+  eleitorEmail = userEmail.toLowerCase().trim();
+  eleitorDeviceFP = await obterDeviceFingerprint();
+
+  // Limpa o hash da URL
+  if (window.location.hash) {
+    history.replaceState(null, document.title, window.location.pathname + window.location.search);
+  }
+
+  // Atualiza interface do modal
+  const blocoGoogle = document.getElementById('bloco-google-login');
+  const blocoCPF = document.getElementById('bloco-cpf-confirmacao');
+  const textoEmail = document.getElementById('texto-email-conectado');
+
+  if (blocoGoogle) blocoGoogle.style.display = 'none';
+  if (blocoCPF) blocoCPF.style.display = 'block';
+  if (textoEmail) textoEmail.innerHTML = `Conectado como: <b>${eleitorEmail}</b>`;
+
+  const inputCPF = document.getElementById('eleitor-cpf-input');
+  if (inputCPF) inputCPF.focus();
+}
+
+// 3. Concluir autenticação com todas as travas combinadas
+async function concluirAutenticacaoHibrida() {
   obterAudioContext();
+  const inputCPF = document.getElementById('eleitor-cpf-input');
   const msgModal = document.getElementById('modal-msg');
+  
+  const cpfLimpo = inputCPF.value.trim().replace(/[^\d]+/g, '');
 
   if (localStorage.getItem(CHAVE_STORAGE_TRAVA)) {
-    if (msgModal) msgModal.innerText = "ATENÇÃO: Este dispositivo já registrou um voto nesta pesquisa!";
+    if (msgModal) msgModal.innerText = "ATENÇÃO: Este dispositivo/navegador já registrou um voto!";
     return;
   }
 
-  if (msgModal) msgModal.innerText = "Verificando participação anterior...";
+  if (!cpfLimpo) {
+    if (msgModal) msgModal.innerText = "Por favor, digite os 11 números do seu CPF.";
+    return;
+  }
+
+  if (!validarCPF(cpfLimpo)) {
+    if (msgModal) msgModal.innerText = "CPF inválido. Verifique os números digitados.";
+    return;
+  }
+
+  if (msgModal) msgModal.innerText = "Validando credenciais da pesquisa...";
+
+  // Verifica se o e-mail Google OU o CPF já votaram
+  const chaveEmail = 'google_' + eleitorEmail;
+  const chaveCPF = 'cpf_' + cpfLimpo;
 
   const { data, error } = await _supabase
     .from('eleitores_votantes')
-    .select('id')
-    .eq('eleitor_id', identificadorUnico);
+    .select('eleitor_id')
+    .in('eleitor_id', [chaveEmail, chaveCPF, cpfLimpo]);
 
   if (error) {
-    if (msgModal) msgModal.innerText = "Erro ao verificar dados: " + error.message;
+    if (msgModal) msgModal.innerText = "Erro ao validar presença: " + error.message;
     return;
   }
 
   if (data && data.length > 0) {
-    if (msgModal) msgModal.innerText = "ATENÇÃO: Esta conta Google já registrou o seu voto!";
+    if (msgModal) msgModal.innerText = "ATENÇÃO: Este participante (E-mail ou CPF) já registrou seu voto!";
     return;
   }
 
-  autenticacaoJaProcessada = true;
-  eleitorID = identificadorUnico;
-  
-  // Fecha o modal e entra direto na cabine de votação
-  const modalID = document.getElementById('modal-id');
-  if (modalID) {
-    modalID.style.display = 'none';
-  }
+  eleitorCPF = cpfLimpo;
 
-  // Limpa os parâmetros de autenticação da URL sem recarregar
-  if (window.location.hash) {
-    history.replaceState(null, document.title, window.location.pathname + window.location.search);
-  }
+  // Fecha o modal e inicia a urna
+  const modalID = document.getElementById('modal-id');
+  if (modalID) modalID.style.display = 'none';
 
   atualizarTela();
 }
@@ -198,17 +284,15 @@ async function validarEIniciarCabine(identificadorUnico) {
 // OUVINTE EM TEMPO REAL DE AUTENTICAÇÃO DO SUPABASE
 _supabase.auth.onAuthStateChange(async (event, session) => {
   if (session && session.user && session.user.email) {
-    const emailIdentificador = 'google_' + session.user.email.toLowerCase().trim();
-    await validarEIniciarCabine(emailIdentificador);
+    await tratarRetornoGoogle(session.user.email);
   }
 });
 
-// CHECAGEM DE SESSÃO ATIVA AO CARREGAR
+// CHECAGEM DE SESSÃO ATIVA AO CARREGAR A PÁGINA
 window.addEventListener('DOMContentLoaded', async () => {
   const { data: { session } } = await _supabase.auth.getSession();
   if (session && session.user && session.user.email) {
-    const emailIdentificador = 'google_' + session.user.email.toLowerCase().trim();
-    await validarEIniciarCabine(emailIdentificador);
+    await tratarRetornoGoogle(session.user.email);
   }
 });
 
@@ -387,9 +471,15 @@ async function confirmar() {
     tocarSomFim();
     document.getElementById('tela').innerHTML = `<div class="tela-fim">GRAVANDO...</div>`;
 
+    // Grava as travas de presença no banco (trava por e-mail e por CPF)
+    const registrosPresenca = [
+      { eleitor_id: 'google_' + eleitorEmail },
+      { eleitor_id: 'cpf_' + eleitorCPF }
+    ];
+
     const { error: erroPresenca } = await _supabase
       .from('eleitores_votantes')
-      .insert([{ eleitor_id: eleitorID }]);
+      .insert(registrosPresenca);
 
     const { error: erroVoto } = await _supabase
       .from('votos')
@@ -403,7 +493,7 @@ async function confirmar() {
         localStorage.setItem(CHAVE_STORAGE_TRAVA, 'votou_' + Date.now());
       } catch (e) {}
 
-      // Realiza logout do Google para fechar a sessão com segurança
+      // Logout da sessão Google
       try {
         await _supabase.auth.signOut();
       } catch (e) {}
@@ -533,7 +623,7 @@ function gerarCanhotoPDF() {
     doc.setFontSize(8);
     doc.text('----------------------------------------', 40, 20, { align: 'center' });
     doc.text(`DATA: ${dataFormatada}  HORA: ${horaFormatada}`, 5, 25);
-    doc.text(`ELEITOR: CONTA GOOGLE`, 5, 30);
+    doc.text(`VALIDACAO: HIBRIDA (GOOGLE+CPF)`, 5, 30);
     doc.text(`AUTENTICACAO: ${codigoAutenticacao}`, 5, 35);
     doc.text('----------------------------------------', 40, 40, { align: 'center' });
 
