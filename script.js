@@ -22,6 +22,7 @@ let votosParaCanhoto = [];
 let candidatoAtual = null;
 let buscandoCandidato = false;
 let primeiroSenadorVotado = null;
+let listaColinhaCache = {};
 
 // Chave da trava local no navegador
 const CHAVE_STORAGE_TRAVA = 'urna_popular_2026_participacao';
@@ -163,7 +164,7 @@ function tocarSomFim() {
   } catch (e) {}
 }
 
-// Validação com Trava Dupla (Navegador + Validação de CPF + Supabase)
+// Validação com Trava Dupla (Navegador + CPF + Supabase)
 async function iniciarVotacao() {
   obterAudioContext();
   const inputID = document.getElementById('eleitor-id-input');
@@ -171,19 +172,16 @@ async function iniciarVotacao() {
   
   const cpfLimpo = inputID.value.trim().replace(/[^\d]+/g, '');
 
-  // 1. Trava por dispositivo/navegador
   if (localStorage.getItem(CHAVE_STORAGE_TRAVA)) {
     msgModal.innerText = "ATENÇÃO: Este dispositivo/navegador já registrou um voto nesta pesquisa!";
     return;
   }
 
-  // 2. Trava de campo vazio
   if (!cpfLimpo) {
     msgModal.innerText = "Por favor, digite os números do seu CPF.";
     return;
   }
 
-  // 3. Validação matemática rigorosa do CPF
   if (!validarCPF(cpfLimpo)) {
     msgModal.innerText = "CPF inválido. Verifique os números digitados.";
     return;
@@ -191,7 +189,6 @@ async function iniciarVotacao() {
 
   msgModal.innerText = "Verificando habilitação do eleitor...";
 
-  // 4. Trava no Livro de Presença do Supabase
   const { data, error } = await _supabase
     .from('eleitores_votantes')
     .select('id')
@@ -387,12 +384,10 @@ async function confirmar() {
     tocarSomFim();
     document.getElementById('tela').innerHTML = `<div class="tela-fim">GRAVANDO...</div>`;
 
-    // 1. Registra no Livro de Presença
     const { error: erroPresenca } = await _supabase
       .from('eleitores_votantes')
       .insert([{ eleitor_id: eleitorID }]);
 
-    // 2. Registra os votos anonimizados
     const { error: erroVoto } = await _supabase
       .from('votos')
       .insert(votosParaBanco);
@@ -401,7 +396,6 @@ async function confirmar() {
       console.error("Erro na gravação:", erroPresenca || erroVoto);
       document.getElementById('tela').innerHTML = `<div style="font-size:16px; color:red; padding:15px; text-align:center;"><b>ERRO AO REGISTRAR VOTO:</b><br>${(erroPresenca || erroVoto).message}</div>`;
     } else {
-      // 3. Aplica a trava no navegador local
       try {
         localStorage.setItem(CHAVE_STORAGE_TRAVA, 'votou_' + Date.now());
       } catch (e) {}
@@ -419,15 +413,93 @@ async function confirmar() {
   }
 }
 
+// FUNÇÕES DA COLINHA ELEITORAL (CONSULTA RÁPIDA)
+async function abrirColinha() {
+  const etapa = etapas[etapaAtual] || etapas[0];
+  const modalColinha = document.getElementById('modal-colinha');
+  const tituloCargo = document.getElementById('colinha-titulo-cargo');
+  const listaContainer = document.getElementById('colinha-lista-candidatos');
+  const inputBusca = document.getElementById('input-busca-colinha');
+
+  tituloCargo.innerText = `📋 Candidatos: ${etapa.cargo}`;
+  inputBusca.value = '';
+  modalColinha.style.display = 'flex';
+  listaContainer.innerHTML = '<div style="padding: 20px; text-align:center; color:#64748b;">Carregando lista...</div>';
+
+  if (!listaColinhaCache[etapa.cargo]) {
+    const { data } = await _supabase
+      .from(etapa.tabela)
+      .select('numero, nome, partido');
+
+    listaColinhaCache[etapa.cargo] = (data || []).map(c => ({
+      numero: String(c.numero).trim(),
+      nome: limparTextoCorrompido(c.nome),
+      partido: limparTextoCorrompido(c.partido)
+    }));
+  }
+
+  renderizarItensColinha(listaColinhaCache[etapa.cargo]);
+}
+
+function fecharColinha() {
+  document.getElementById('modal-colinha').style.display = 'none';
+}
+
+function renderizarItensColinha(candidatos) {
+  const listaContainer = document.getElementById('colinha-lista-candidatos');
+  if (candidatos.length === 0) {
+    listaContainer.innerHTML = '<div style="padding: 20px; text-align:center; color:#64748b;">Nenhum candidato encontrado.</div>';
+    return;
+  }
+
+  let html = '';
+  candidatos.forEach(c => {
+    html += `
+      <div class="colinha-item" onclick="selecionarDaColinha('${c.numero}')">
+        <div class="colinha-nome-bloco">
+          <span class="colinha-nome">${c.nome}</span>
+          <span class="colinha-partido">${c.partido || 'Sem Partido'}</span>
+        </div>
+        <span class="colinha-numero-badge">${c.numero}</span>
+      </div>
+    `;
+  });
+  listaContainer.innerHTML = html;
+}
+
+function filtrarColinha() {
+  const etapa = etapas[etapaAtual] || etapas[0];
+  const termo = document.getElementById('input-busca-colinha').value.toLowerCase().trim();
+  const todos = listaColinhaCache[etapa.cargo] || [];
+
+  const filtrados = todos.filter(c => 
+    c.nome.toLowerCase().includes(termo) ||
+    c.numero.toLowerCase().includes(termo) ||
+    c.partido.toLowerCase().includes(termo)
+  );
+
+  renderizarItensColinha(filtrados);
+}
+
+function selecionarDaColinha(numero) {
+  fecharColinha();
+  numeroDigitado = '';
+  candidatoAtual = null;
+  votoEmBranco = false;
+
+  for (let i = 0; i < numero.length; i++) {
+    digitar(numero[i]);
+  }
+}
+
 // GERAÇÃO DO COMPROVANTE / CANHOTO EM PDF (COMPATÍVEL COM CELULARES)
 function gerarCanhotoPDF() {
   const statusEl = document.getElementById('status-download-pdf');
   if (statusEl) statusEl.innerText = "Gerando comprovante...";
 
-  // Validação da biblioteca jsPDF
   const jsPDFClass = window.jspdf ? window.jspdf.jsPDF : (window.jsPDF || null);
   if (!jsPDFClass) {
-    alert("Erro: A biblioteca de geração de PDF não pôde ser carregada. Por favor, tire um print desta tela como comprovante.");
+    alert("Erro ao carregar a biblioteca de PDF. Por favor, tire um print screen desta tela.");
     if (statusEl) statusEl.innerText = "";
     return;
   }
@@ -485,7 +557,6 @@ function gerarCanhotoPDF() {
 
     const nomeArquivo = `Comprovante_Pesquisa_${codigoAutenticacao}.pdf`;
 
-    // Rotina universal de download e abertura compatível com mobile
     const pdfBlob = doc.output('blob');
     const blobUrl = URL.createObjectURL(pdfBlob);
 
@@ -497,15 +568,14 @@ function gerarCanhotoPDF() {
     link.click();
     document.body.removeChild(link);
 
-    // Libera a memória após o clique
     setTimeout(() => {
       URL.revokeObjectURL(blobUrl);
       if (statusEl) statusEl.innerText = "Comprovante gerado com sucesso!";
     }, 1500);
 
   } catch (erro) {
-    console.error("Erro ao gerar PDF no mobile:", erro);
-    alert("Não foi possível salvar o arquivo automaticamente no celular. Recomendamos tirar um print screen.");
+    console.error("Erro ao gerar PDF:", erro);
+    alert("Não foi possível salvar o arquivo automaticamente. Recomendamos tirar um print.");
     if (statusEl) statusEl.innerText = "";
   }
 }

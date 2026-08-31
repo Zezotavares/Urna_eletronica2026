@@ -79,26 +79,6 @@ body {
   line-height: 1.5;
 }
 
-.sugestao-id {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 12.5px;
-  color: #334155;
-}
-
-.sugestao-id strong {
-  display: block;
-  color: #0f172a;
-  margin-bottom: 6px;
-}
-
-.sugestao-id ul {
-  padding-left: 18px;
-  line-height: 1.6;
-}
-
 .aviso-sigilo {
   background: #ecfdf5;
   border: 1px solid #a7f3d0;
@@ -179,7 +159,137 @@ body {
   line-height: 1.3;
 }
 
-/* CARCAÇA DA URNA ELETRÔNICA (TOM CINZA-CLARO REALISTA) */
+/* MODAL DA COLINHA ELEITORAL */
+#modal-colinha {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 110;
+  padding: 16px;
+}
+
+.colinha-box {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid #cbd5e1;
+  overflow: hidden;
+}
+
+.colinha-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.colinha-topo h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.btn-fechar-colinha {
+  background: #e2e8f0;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  color: #475569;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-fechar-colinha:hover {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+.colinha-busca-box {
+  padding: 12px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.colinha-busca-box input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13.5px;
+  outline: none;
+}
+
+.colinha-busca-box input:focus {
+  border-color: #2563eb;
+}
+
+.colinha-lista {
+  padding: 14px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.colinha-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.colinha-item:hover {
+  background-color: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.colinha-nome-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.colinha-nome {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.colinha-partido {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.colinha-numero-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e40af;
+  background: #dbeafe;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* CARCAÇA DA URNA ELETRÔNICA */
 .urna-container {
   display: flex;
   background: #e2e8f0;
@@ -269,9 +379,9 @@ body {
   background: #f8fafc;
   padding: 10px 12px;
   border-radius: 6px;
-  border-left: 4px solid #0f172a;
   border: 1px solid #e2e8f0;
   border-left-width: 4px;
+  border-left-color: #0f172a;
 }
 
 .foto-candidato {
@@ -348,7 +458,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   padding: 0 10px;
 }
 
@@ -429,10 +539,35 @@ body {
   box-shadow: 0 1px #14532d;
 }
 
+/* AÇÕES AUXILIARES */
+.teclado-auxiliares {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.btn-abrir-colinha {
+  background-color: #475569;
+  color: #f8fafc;
+  border: 1px solid #64748b;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: center;
+}
+
+.btn-abrir-colinha:hover {
+  background-color: #2563eb;
+  border-color: #3b82f6;
+}
+
 .link-apuracao-discreto {
   display: block;
   text-align: center;
-  margin-top: 14px;
   font-size: 11px;
   color: #cbd5e1;
   text-decoration: none;

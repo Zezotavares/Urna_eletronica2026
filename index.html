@@ -3,7 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Urna Popular - Pesquisa Informal 2026</title>
+  
+  <!-- Título e SEO para o Google Search -->
+  <title>Pesquisa Popular 2026 - Simulador de Votação e Apuração</title>
+  <meta name="description" content="Simulador independente de votação e pesquisa de opinião popular para as Eleições 2026. Vote de forma anônima e acompanhe a apuração em tempo real.">
+  <meta name="keywords" content="pesquisa eleitoral 2026, simulador urna eletronica, pesquisa popular presidente governador senador deputado, apuracao tempo real, opiniao publica">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph para prévia rica no WhatsApp, Facebook e Redes Sociais -->
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="🗳️ Pesquisa Popular 2026 - Participe da Votação!">
+  <meta property="og:description" content="Simulação de votação para Presidente, Governador, Senador e Deputados. Participe e veja o resultado ao vivo!">
+  <meta property="og:url" content="https://pesquisa-popular-2026.netlify.app/">
+  <meta property="og:site_name" content="Urna Popular 2026">
   
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -17,20 +30,19 @@
     <div class="modal-box">
       <div class="modal-icone">🗳️</div>
       <h2>PESQUISA POPULAR INFORMAL</h2>
-      <span class="modal-subtitulo">Identificação do Participante</span>
+      <span class="modal-subtitulo">Simulador de Votação • Eleições 2026</span>
 
       <div class="modal-orientacoes">
         <p>
-          Para assegurar a integridade da pesquisa e impedir votos duplicados, 
-          digite apenas os 11 números do seu <b>CPF</b>.
+          Para assegurar a confiabilidade da pesquisa e impedir que uma mesma pessoa vote várias vezes, informe o seu <b>CPF</b> para validação da presença.
         </p>
 
         <div class="aviso-sigilo">
-          🔒 <b>Sigilo Garantido:</b> O CPF serve exclusivamente para registrar sua presença no livro de votantes. Suas escolhas na urna são gravadas de forma 100% anônima e desassociada.
+          🔒 <b>Sigilo Total Garantido:</b> O CPF serve apenas como chave de presença única. Seus votos são gravados em uma tabela separada e 100% anônima.
         </div>
 
         <div class="aviso-expiracao">
-          ⏳ <b>Tempo Limitado:</b> Os registros de presença ficarão armazenados por apenas <b>1 semana</b> (período oficial de vigência desta pesquisa). Após esse prazo, a base de participantes será completamente zerada juntamente com a emissão da <i>Zerésima da Urna</i>.
+          ⏳ <b>Base Temporária:</b> Todos os registros de presença serão zerados ao término da pesquisa com a emissão do relatório final da <i>Zerésima</i>.
         </div>
       </div>
 
@@ -38,18 +50,39 @@
       <input 
         type="text" 
         id="eleitor-id-input" 
-        placeholder="Digite apenas os números do CPF..." 
+        placeholder="Digite os 11 números do seu CPF..." 
         maxlength="14"
         inputmode="numeric"
         oninput="mascaraCPF(this)"
         autofocus
       >
       
-      <button onclick="iniciarVotacao()">LIBERAR CABINE DE VOTAÇÃO</button>
+      <button onclick="iniciarVotacao()">ENTRAR NA CABINE DE VOTAÇÃO</button>
       <div id="modal-msg"></div>
 
       <div class="modal-rodape-legal">
-        ⚠️ Pesquisa popular de opinião pública sem vínculo eleitoral oficial.
+        ⚠️ Plataforma independente de pesquisa e opinião pública sem vínculo com a Justiça Eleitoral.
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal da Colinha Eleitoral (Consulta Rápida) -->
+  <div id="modal-colinha" style="display: none;">
+    <div class="colinha-box">
+      <div class="colinha-topo">
+        <h3 id="colinha-titulo-cargo">📋 Candidatos - Cargo</h3>
+        <button class="btn-fechar-colinha" onclick="fecharColinha()">✕</button>
+      </div>
+      <div class="colinha-busca-box">
+        <input 
+          type="text" 
+          id="input-busca-colinha" 
+          placeholder="Buscar candidato por nome ou número..." 
+          oninput="filtrarColinha()"
+        >
+      </div>
+      <div id="colinha-lista-candidatos" class="colinha-lista">
+        <!-- Lista injetada via JavaScript -->
       </div>
     </div>
   </div>
@@ -64,7 +97,7 @@
       <div class="justica-eleitoral">URNA POPULAR</div>
       
       <div class="aviso-nao-oficial">
-        ⚠️ ATENÇÃO: Esta é uma ferramenta de pesquisa de opinião sem vínculo eleitoral oficial.
+        ⚠️ ATENÇÃO: Ferramenta de pesquisa de opinião sem vínculo eleitoral oficial.
       </div>
       
       <div class="teclado-numerico">
@@ -86,7 +119,15 @@
         <button class="btn-acao btn-confirma" onclick="confirmar()">CONFIRMA</button>
       </div>
 
-      <a href="apuracao.html" class="link-apuracao-discreto">Painel de Apuração em Tempo Real ↗</a>
+      <!-- Ações Auxiliares: Colinha e Apuração -->
+      <div class="teclado-auxiliares">
+        <button type="button" class="btn-abrir-colinha" onclick="abrirColinha()">
+          📋 Ver Lista de Candidatos (Colinha)
+        </button>
+        <a href="apuracao.html" class="link-apuracao-discreto">
+          📊 Painel de Apuração em Tempo Real ↗
+        </a>
+      </div>
     </div>
   </div>
 
