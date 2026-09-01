@@ -228,18 +228,13 @@ async function tratarRetornoGoogle(userEmail) {
   if (inputCPF) inputCPF.focus();
 }
 
-// 3. Concluir autenticação com todas as travas combinadas
+// 3. Concluir autenticação com validação no banco
 async function concluirAutenticacaoHibrida() {
   obterAudioContext();
   const inputCPF = document.getElementById('eleitor-cpf-input');
   const msgModal = document.getElementById('modal-msg');
   
   const cpfLimpo = inputCPF.value.trim().replace(/[^\d]+/g, '');
-
-  if (localStorage.getItem(CHAVE_STORAGE_TRAVA)) {
-    if (msgModal) msgModal.innerText = "ATENÇÃO: Este dispositivo/navegador já registrou um voto!";
-    return;
-  }
 
   if (!cpfLimpo) {
     if (msgModal) msgModal.innerText = "Por favor, digite os 11 números do seu CPF.";
@@ -253,7 +248,7 @@ async function concluirAutenticacaoHibrida() {
 
   if (msgModal) msgModal.innerText = "Validando credenciais da pesquisa...";
 
-  // Verifica se o e-mail Google OU o CPF já votaram
+  // Verifica se o e-mail Google OU o CPF constam na tabela de votantes
   const chaveEmail = 'google_' + eleitorEmail;
   const chaveCPF = 'cpf_' + cpfLimpo;
 
@@ -271,6 +266,11 @@ async function concluirAutenticacaoHibrida() {
     if (msgModal) msgModal.innerText = "ATENÇÃO: Este participante (E-mail ou CPF) já registrou seu voto!";
     return;
   }
+
+  // Se o banco foi resetado pela Zerésima, limpa o bloqueio residual antigo do dispositivo
+  try {
+    localStorage.removeItem(CHAVE_STORAGE_TRAVA);
+  } catch (e) {}
 
   eleitorCPF = cpfLimpo;
 
@@ -471,7 +471,7 @@ async function confirmar() {
     tocarSomFim();
     document.getElementById('tela').innerHTML = `<div class="tela-fim">GRAVANDO...</div>`;
 
-    // Grava as travas de presença no banco (trava por e-mail e por CPF)
+    // Grava as travas de presença no banco (por e-mail e por CPF)
     const registrosPresenca = [
       { eleitor_id: 'google_' + eleitorEmail },
       { eleitor_id: 'cpf_' + eleitorCPF }
