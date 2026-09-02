@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Favicon Personalizado -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  
+  <!-- SEO -->
+  <title>Tira-Dúvidas com o Mesário Virtual - Pesquisa Popular 2026</title>
+  <meta name="description" content="Tire suas dúvidas sobre a Pesquisa Popular 2026 com o Mesário Virtual. Entenda a segurança, o sigilo do voto e o funcionamento da urna estilo Show do Milhão.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://pesquisa-popular-2026.netlify.app/como-funciona.html">
+
+  <link rel="stylesheet" href="como-funciona.css">
+</head>
+<body>
+
+  <!-- Barra Superior Estilo Programa de TV -->
+  <header class="navbar-show">
+    <div class="navbar-conteudo">
+      <div class="navbar-titulo">
+        <span class="icone-tv">📺</span>
+        <div>
+          <span class="logo-texto">TIRA-DÚVIDAS OFICIAL</span>
+          <span class="subtitulo-show">Pesquisa Popular Informal • Eleições 2026</span>
+        </div>
+      </div>
+      <div class="navbar-acoes">
+        <a href="index.html" class="btn-acao-tv btn-urna">🗳️ Ir para a Urna</a>
+        <a href="apuracao.html" class="btn-acao-tv btn-apuracao">📊 Ver Apuração</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner de Aviso Legal -->
+  <div class="banner-aviso-legal">
+    <div class="container-central aviso-box">
+      ⚠️ <b>PESQUISA POPULAR INDEPENDENTE:</b> Ferramenta de opinião pública sem qualquer vínculo com a Justiça Eleitoral.
+    </div>
+  </div>
+
+  <main class="container-central palco-container">
+
+    <!-- PALCO DO MESÁRIO VIRTUAL COM DUPLO PLAYER E CAIXA DE PERGUNTAS À DIREITA -->
+    <section class="cenario-personagem-card" id="cenario-palco">
+      
+      <div class="palco-imagem-wrapper">
+        
+        <!-- Duplo Player de Vídeo em Camadas para Zero Tela Preta -->
+        <div class="video-container-camadas">
+          <video id="video-player-1" class="video-mesario-oficial ativo" playsinline preload="auto"></video>
+          <video id="video-player-2" class="video-mesario-oficial" playsinline preload="auto"></video>
+        </div>
+
+        <!-- CAIXA DE PERGUNTAS POSICIONADA NO LADO DIREITO DO QUADRO -->
+        <div class="painel-perguntas-lateral-direito">
+          <div class="topo-perguntas-lateral">
+            <span class="status-bolinha">●</span>
+            <span class="titulo-bloco-perguntas">SELECIONE UMA PERGUNTA:</span>
+          </div>
+
+          <div class="lista-alternativas-lateral">
+            
+            <button type="button" class="btn-alternativa" onclick="reproduzirVideoTopico('sigilo', 'mesario-sigilo.mp4', this)">
+              <span class="letra-alternativa">A</span>
+              <span class="texto-alternativa">O meu voto é realmente secreto e seguro?</span>
+            </button>
+
+            <button type="button" class="btn-alternativa" onclick="reproduzirVideoTopico('seguranca', 'mesario-trava.mp4', this)">
+              <span class="letra-alternativa">B</span>
+              <span class="texto-alternativa">Por que a urna pede Login com Google e CPF?</span>
+            </button>
+
+            <button type="button" class="btn-alternativa" onclick="reproduzirVideoTopico('candidatos', 'mesario-colinha.mp4', this)">
+              <span class="letra-alternativa">C</span>
+              <span class="texto-alternativa">Como consultar o número do meu candidato na Colinha?</span>
+            </button>
+
+            <button type="button" class="btn-alternativa" onclick="reproduzirVideoTopico('zeresima', 'mesario-zeresima.mp4', this)">
+              <span class="letra-alternativa">D</span>
+              <span class="texto-alternativa">O que é a Zerésima e como funciona a auditoria?</span>
+            </button>
+
+            <button type="button" class="btn-alternativa" onclick="reproduzirVideoTopico('comprovante', 'mesario-comprovante.mp4', this)">
+              <span class="letra-alternativa">E</span>
+              <span class="texto-alternativa">Como baixar e validar meu Comprovante em PDF?</span>
+            </button>
+
+            <button type="button" class="btn-alternativa" onclick="reproduzirVideoTopico('senadores', 'mesario-senadores.mp4', this)">
+              <span class="letra-alternativa">F</span>
+              <span class="texto-alternativa">Como votar para os 2 Senadores sem anular o voto?</span>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Botão de Ação para Ir Votar -->
+    <div class="rodape-convite-voto">
+      <h3>Dúvidas esclarecidas? Faça valer a sua opinião!</h3>
+      <a href="index.html" class="btn-entrar-cabine-glow">
+        ENTRAR NA CABINE DE VOTAÇÃO AGORA ➔
+      </a>
+    </div>
+
+  </main>
+
+  <footer class="rodape-tv">
+    <div class="container-central">
+      <p>Simulador e Pesquisa de Opinião Pública • Sistema com Sigilo e Segurança de Dados.</p>
+    </div>
+  </footer>
+
+  <script src="como-funciona.js"></script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: radial-gradient(circle at 50% 15%, #1e293b 0%, #0b0f19 100%);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #f8fafc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.container-central {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+  width: 100%;
+}
+
+/* NAVBAR */
+.navbar-show {
+  background-color: rgba(15, 23, 42, 0.95);
+  border-bottom: 2px solid #3b82f6;
+  padding: 12px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.navbar-conteudo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.navbar-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icone-tv {
+  font-size: 26px;
+}
+
+.logo-texto {
+  display: block;
+  font-size: 16px;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 0.5px;
+}
+
+.subtitulo-show {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.navbar-acoes {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-acao-tv {
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 800;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.btn-urna {
+  background: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.4);
+}
+
+.btn-urna:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+}
+
+.btn-apuracao {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.btn-apuracao:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+/* BANNER AVISO LEGAL */
+.banner-aviso-legal {
+  background-color: rgba(245, 158, 11, 0.12);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 8px 0;
+}
+
+.aviso-box {
+  font-size: 11.5px;
+  color: #fcd34d;
+  text-align: center;
+}
+
+/* CONTAINER DO PALCO */
+.palco-container {
+  padding-top: 20px;
+  padding-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* CARD DO CENÁRIO ESTÁTICO */
+.cenario-personagem-card {
+  position: relative;
+  background: #0f172a;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 1.5px rgba(59, 130, 246, 0.3);
+}
+
+.palco-imagem-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.video-container-camadas {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #0f172a;
+}
+
+.video-mesario-oficial {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+  pointer-events: none;
+}
+
+.video-mesario-oficial.ativo {
+  position: relative;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* PAINEL DE PERGUNTAS POSICIONADO NO LADO DIREITO */
+.painel-perguntas-lateral-direito {
+  position: absolute;
+  top: 6%;
+  right: 3%;
+  width: 33%;
+  max-width: 370px;
+  bottom: 8%;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border: 2px solid #38bdf8;
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(56, 189, 248, 0.2);
+  display: flex;
+  flex-direction: column;
+  z-index: 15;
+  overflow-y: auto;
+}
+
+.topo-perguntas-lateral {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1.5px solid rgba(56, 189, 248, 0.35);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.status-bolinha {
+  color: #22c55e;
+  font-size: 13px;
+}
+
+.titulo-bloco-perguntas {
+  font-size: 11px;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.6px;
+}
+
+.lista-alternativas-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+/* BOTÕES ESTILO SHOW DO MILHÃO */
+.btn-alternativa {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border: 1.5px solid #3b82f6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-alternativa:hover {
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%);
+  border-color: #facc15;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4), 0 0 8px rgba(250, 204, 21, 0.4);
+}
+
+.btn-alternativa.ativa {
+  background: linear-gradient(180deg, #ca8a04 0%, #854d0e 100%);
+  border-color: #fef08a;
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.6);
+}
+
+.letra-alternativa {
+  background: #facc15;
+  color: #0f172a;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 900;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.texto-alternativa {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+}
+
+/* CONVITE FINAL */
+.rodape-convite-voto {
+  background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+  border: 2px solid #2563eb;
+  border-radius: 18px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.rodape-convite-voto h3 {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: #f1f5f9;
+}
+
+.btn-entrar-cabine-glow {
+  display: inline-block;
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14.5px;
+  font-weight: 900;
+  padding: 15px 32px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+
+.btn-entrar-cabine-glow:hover {
+  background: #15803d;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.6);
+}
+
+/* FOOTER */
+.rodape-tv {
+  margin-top: auto;
+  background: #090d16;
+  border-top: 1px solid #1e293b;
+  padding: 18px 0;
+  text-align: center;
+}
+
+.rodape-tv p {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* RESPONSIVIDADE PARA SMARTPHONES */
+@media (max-width: 820px) {
+  .palco-imagem-wrapper {
+    flex-direction: column;
+  }
+
+  .painel-perguntas-lateral-direito {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    max-width: none;
+    margin-top: -30px;
+    border-radius: 16px;
+  }
+}
